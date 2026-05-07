@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Balern AI Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body{margin:0;background:#080a0f;color:#f4f7ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:16px}
+    .wrap{max-width:620px;margin:0 auto}
+    .hero,.card{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);border-radius:26px;padding:18px;margin-bottom:12px}
+    .hero{background:linear-gradient(145deg,rgba(139,211,255,.14),rgba(255,255,255,.04))}
+    h1{font-size:32px;margin:10px 0 6px;letter-spacing:-.04em}
+    h2{font-size:19px;margin:0 0 10px}
+    p{color:rgba(244,247,255,.68);line-height:1.45;margin:0 0 12px}
+    .badge{display:inline-block;color:#8bd3ff;background:rgba(139,211,255,.12);border:1px solid rgba(139,211,255,.2);border-radius:999px;padding:8px 11px;font-weight:800;font-size:13px}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;position:sticky;top:8px}
+    .tab,.btn{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.075);color:#f4f7ff;border-radius:16px;padding:12px;font-weight:800}
+    .tab.active,.btn.primary{background:linear-gradient(135deg,#8bd3ff,#72ffb6);color:#071018;border:0}
+    .page{display:none}.page.active{display:block}
+    .btn{width:100%;text-align:left;margin:6px 0;display:flex;justify-content:space-between;align-items:center}
+    .btn small{display:block;color:rgba(244,247,255,.62);font-weight:600;margin-top:4px}
+    .btn.primary small{color:rgba(7,16,24,.7)}
+    .danger{color:#ff6d8f}
+    .toast{display:none;margin-top:10px;padding:12px;border-radius:14px;background:rgba(139,211,255,.12);color:#8bd3ff}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+    .stat{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:10px}
+    .stat span{display:block;color:rgba(244,247,255,.62);font-size:12px;margin-top:3px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="badge">⚡ Balern AI</div>
+      <h1>Панель управления</h1>
+      <p>Mini App для настроек без команд: память, картинки, статус и быстрые действия.</p>
+      <div class="grid">
+        <div class="stat">💬 Текст<span>Fast mode</span></div>
+        <div class="stat">🎨 Картинки<span>Pollinations</span></div>
+        <div class="stat">🧠 Память<span>По chat_id</span></div>
+        <div class="stat">⚙️ UX<span>Mini App</span></div>
+      </div>
+      <button class="btn primary" onclick="sendAction('status')"><span>📊 Проверить статус<small>Бот ответит в чат</small></span><b>›</b></button>
+      <div class="toast" id="toast"></div>
+    </section>
+    <nav class="tabs">
+      <button class="tab active" onclick="openPage('home',this)">Главная</button>
+      <button class="tab" onclick="openPage('text',this)">Текст</button>
+      <button class="tab" onclick="openPage('images',this)">Картинки</button>
+      <button class="tab" onclick="openPage('memory',this)">Память</button>
+      <button class="tab" onclick="openPage('groups', this)">Группы</button>
+    </nav>
+    <section id="home" class="page active card">
+      <h2>Быстрые действия</h2>
+      <button class="btn" onclick="sendAction('memory_show')"><span>🧠 Показать память<small>Что бот помнит в этом чате</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('image_styles')"><span>🎨 Стили картинок<small>Auto, cinematic, realistic...</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('image_help')"><span>🖼 Как генерировать<small>Примеры команд /image</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('settings')"><span>⚙️ Настройки<small>Обычные настройки бота</small></span><b>›</b></button>
+    </section>
+    <section id="text" class="page card">
+      <h2>💬 Текст</h2>
+      <p>Сейчас активен быстрый режим, чтобы free-модели не держали чат слишком долго.</p>
+      <button class="btn" onclick="sendAction('text_fast')">⚡ Быстрый режим <b>›</b></button>
+      <button class="btn" onclick="sendAction('text_balance')">⚖️ Баланс <b>›</b></button>
+      <button class="btn" onclick="sendAction('text_smart')">🧠 Умный режим <b>›</b></button>
+    </section>
+                <section id="images" class="page card">
+      <h2>🎨 Картинки</h2>
+      <p>Тут можно выбрать стиль, размер, пресет по умолчанию и быстрый шаблон для разовой генерации.</p>
+
+      <button class="btn primary" onclick="sendAction('image_show_settings')"><span>🧾 Текущие настройки<small>Показать стиль, размер и пресет</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Быстрые шаблоны</h2>
+      <p>Шаблон не меняет настройки навсегда. Бот попросит ответить объектом/сценой и сразу запустит генерацию.</p>
+      <button class="btn" onclick="sendAction('image_template_wallpaper')">🖼 Сделать обои <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_template_story')">📱 Сделать сторис <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_template_cinematic')">🎬 Сделать кино-кадр <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_template_avatar')">👤 Сделать аватар <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_template_car_poster')">🏎 Сделать авто-постер <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_templates')">📋 Показать все шаблоны <b>›</b></button>
+
+      <h2 style="margin-top:16px">Пресеты по умолчанию</h2>
+      <button class="btn" onclick="sendAction('image_preset_auto')">🎯 Авто <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_preset_wallpaper')">🖼 Обои <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_preset_story')">📱 Сторис <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_preset_cinematic')">🎬 Кино-кадр <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_preset_avatar')">👤 Аватар <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_preset_car_poster')">🏎 Авто-постер <b>›</b></button>
+      <button class="btn danger" onclick="sendAction('image_preset_reset')">♻️ Сбросить пресет <b>›</b></button>
+
+      <h2 style="margin-top:16px">Стиль</h2>
+      <button class="btn" onclick="sendAction('image_style_auto')">🎯 Авто <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_style_realistic')">📷 Реалистичный <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_style_cinematic')">🌃 Кинематографичный <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_style_illustration')">✨ Иллюстрация <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_style_anime')">🎌 Аниме <b>›</b></button>
+
+      <h2 style="margin-top:16px">Размер</h2>
+      <button class="btn" onclick="sendAction('image_size_square_768')">◻️ 768×768 <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_size_square_1024')">🟦 1024×1024 <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_size_portrait')">📱 1024×1536 <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_size_landscape')">🖥 1536×1024 <b>›</b></button>
+
+      <button class="btn danger" onclick="sendAction('image_reset_settings')">♻️ Сбросить все настройки картинок <b>›</b></button>
+      <button class="btn" onclick="sendAction('image_help')">🖼 Как генерировать <b>›</b></button>
+      <button class="btn" onclick="sendAction('edit_info')">🛠 Редактирование фото <b>›</b></button>
+    </section>
+    <section id="memory" class="page card">
+      <h2>🧠 Память</h2>
+      <p>Память отдельно для каждого Telegram-чата.</p>
+      <button class="btn primary" onclick="sendAction('memory_show')"><span>🧠 Показать память<small>Посмотреть summary</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('memory_on')">▶️ Включить память <b>›</b></button>
+      <button class="btn" onclick="sendAction('memory_off')">⏸ Выключить память <b>›</b></button>
+      <button class="btn danger" onclick="forgetMemory()">🗑 Очистить память <b>›</b></button>
+    </section>
+
+      <section id="groups" class="page card">
+      <h2>👥 Группы</h2>
+      <p>Добавь Balern AI в чат с друзьями и используй его как общего AI-братана.</p>
+
+      <button class="btn primary" onclick="openExternal('https://t.me/balernai_bot?startgroup=true')"><span>➕ Добавить бота в чат<small>Откроется Telegram</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_help')"><span>📘 Как пользоваться в группе<small>/ai, /image, /app, память</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Автоответы</h2>
+      <p>Бот сам отвечает только когда его явно задели: @бот, “бот”, “балерн” или reply на его сообщение.</p>
+      <button class="btn" onclick="sendAction('group_auto_status')"><span>🤖 Статус автоответов<small>Включены или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_on')"><span>▶️ Включить автоответы<small>Отвечать, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_off')"><span>⏸ Выключить автоответы<small>Не отвечать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Group-aware AI</h2>
+      <p>Команда /gai отвечает с учётом памяти группы. Обычный /ai пока не трогаем.</p>
+      <button class="btn" onclick="sendAction('group_ai_help')"><span>🤖 Как спрашивать по истории<small>Инструкция для /gai</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_context')"><span>🧾 Текущий контекст группы<small>Последние сохранённые сообщения</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Память группы</h2>
+      <button class="btn" onclick="sendAction('group_status')"><span>📊 Статус группы<small>Слушает или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_on')"><span>▶️ Включить слушание<small>Сохранять обычные сообщения группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_off')"><span>⏸ Выключить слушание<small>Не сохранять новые сообщения</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_memory')"><span>🧠 Память группы<small>Показать последние сообщения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_forget')"><span>🗑 Очистить память группы<small>Удалить сохранённую историю</small></span><b>›</b></button>
+    </section>
+
+      <section id="groups" class="page card">
+      <h2>👥 Группы</h2>
+      <p>Добавь Balern AI в чат с друзьями и используй его как общего AI-братана.</p>
+
+      <button class="btn primary" onclick="openExternal('https://t.me/balernai_bot?startgroup=true')"><span>➕ Добавить бота в чат<small>Откроется Telegram</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_help')"><span>📘 Как пользоваться в группе<small>/ai, /image, /app, память</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Proactive Mode</h2>
+      <p>Бот может иногда сам включиться в разговор по истории группы. Аккуратно: с шансом и cooldown.</p>
+      <button class="btn" onclick="sendAction('group_proactive_status')"><span>🌱 Статус proactive<small>Шанс, cooldown, состояние</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_on')"><span>▶️ Включить proactive<small>Иногда писать самому</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_off')"><span>⏸ Выключить proactive<small>Не писать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Автоответы</h2>
+      <p>Бот сам отвечает только когда его явно задели: @бот, “бот”, “балерн” или reply на его сообщение.</p>
+      <button class="btn" onclick="sendAction('group_auto_status')"><span>🤖 Статус автоответов<small>Включены или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_on')"><span>▶️ Включить автоответы<small>Отвечать, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_off')"><span>⏸ Выключить автоответы<small>Не отвечать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Group-aware AI</h2>
+      <p>Команда /gai отвечает с учётом памяти группы.</p>
+      <button class="btn" onclick="sendAction('group_ai_help')"><span>🤖 Как спрашивать по истории<small>Инструкция для /gai</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_context')"><span>🧾 Текущий контекст группы<small>Последние сохранённые сообщения</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Память группы</h2>
+      <button class="btn" onclick="sendAction('group_status')"><span>📊 Статус группы<small>Слушает или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_on')"><span>▶️ Включить слушание<small>Сохранять обычные сообщения группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_off')"><span>⏸ Выключить слушание<small>Не сохранять новые сообщения</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_memory')"><span>🧠 Память группы<small>Показать последние сообщения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_forget')"><span>🗑 Очистить память группы<small>Удалить сохранённую историю</small></span><b>›</b></button>
+    </section>
+
+      <section id="groups" class="page card">
+      <h2>👥 Группы</h2>
+      <p>Добавь Balern AI в чат с друзьями и используй его как общего AI-братана.</p>
+
+      <button class="btn primary" onclick="openExternal('https://t.me/balernai_bot?startgroup=true')"><span>➕ Добавить бота в чат<small>Откроется Telegram</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_help')"><span>📘 Как пользоваться в группе<small>/ai, /image, /app, память</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Режим группы</h2>
+      <p>Одна кнопка настраивает сразу память, автоответы и proactive mode.</p>
+      <button class="btn primary" onclick="sendAction('group_mode_status')"><span>⚙️ Текущий режим<small>Показать настройки группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_quiet')"><span>🤫 Quiet<small>Слушает, но сам молчит</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_balanced')"><span>⚖️ Balanced<small>Отвечает, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_active')"><span>🔥 Active<small>Иногда включается сам</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_mode_chaos')"><span>🧨 Chaos<small>Тестовый режим для друзей</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_modes_help')"><span>📋 О режимах<small>Что означает каждый режим</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Proactive Mode</h2>
+      <p>Бот может иногда сам включиться в разговор по истории группы. Аккуратно: с шансом и cooldown.</p>
+      <button class="btn" onclick="sendAction('group_proactive_status')"><span>🌱 Статус proactive<small>Шанс, cooldown, состояние</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_on')"><span>▶️ Включить proactive<small>Иногда писать самому</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_off')"><span>⏸ Выключить proactive<small>Не писать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Автоответы</h2>
+      <p>Бот сам отвечает только когда его явно задели: @бот, “бот”, “балерн” или reply на его сообщение.</p>
+      <button class="btn" onclick="sendAction('group_auto_status')"><span>🤖 Статус автоответов<small>Включены или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_on')"><span>▶️ Включить автоответы<small>Отвечать, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_off')"><span>⏸ Выключить автоответы<small>Не отвечать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Group-aware AI</h2>
+      <p>Команда /gai отвечает с учётом памяти группы.</p>
+      <button class="btn" onclick="sendAction('group_ai_help')"><span>🤖 Как спрашивать по истории<small>Инструкция для /gai</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_context')"><span>🧾 Текущий контекст группы<small>Последние сохранённые сообщения</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Память группы</h2>
+      <button class="btn" onclick="sendAction('group_status')"><span>📊 Статус группы<small>Слушает или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_on')"><span>▶️ Включить слушание<small>Сохранять обычные сообщения группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_off')"><span>⏸ Выключить слушание<small>Не сохранять новые сообщения</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_memory')"><span>🧠 Память группы<small>Показать последние сообщения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_forget')"><span>🗑 Очистить память группы<small>Удалить сохранённую историю</small></span><b>›</b></button>
+    </section>
+
+      <section id="groups" class="page card">
+      <h2>👥 Группы</h2>
+      <p>Добавь Balern AI в чат с друзьями и используй его как общего AI-братана.</p>
+
+      <button class="btn primary" onclick="openExternal('https://t.me/balernai_bot?startgroup=true')"><span>➕ Добавить бота в чат<small>Откроется Telegram</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_help')"><span>📘 Как пользоваться в группе<small>/ai, /image, /app, память</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Режим группы</h2>
+      <p>Одна кнопка настраивает сразу память, автоответы и proactive mode.</p>
+      <button class="btn primary" onclick="sendAction('group_mode_status')"><span>⚙️ Текущий режим<small>Показать настройки группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_quiet')"><span>🤫 Quiet<small>Слушает, но сам молчит</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_balanced')"><span>⚖️ Balanced<small>Отвечает, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_active')"><span>🔥 Active<small>Иногда включается сам</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_mode_chaos')"><span>🧨 Chaos<small>Тестовый режим для друзей</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_modes_help')"><span>📋 О режимах<small>Что означает каждый режим</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Group-aware AI</h2>
+      <p>В группе команда /ai отвечает с учётом памяти группы. /gai тоже остаётся.</p>
+      <button class="btn" onclick="sendAction('group_ai_command_help')"><span>💬 Как пользоваться /ai<small>/ai теперь помнит историю группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_ai_help')"><span>🤖 Как спрашивать по истории<small>Инструкция для /gai</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_context')"><span>🧾 Текущий контекст группы<small>Последние сохранённые сообщения</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Proactive Mode</h2>
+      <p>Бот может иногда сам включиться в разговор по истории группы. Аккуратно: с шансом и cooldown.</p>
+      <button class="btn" onclick="sendAction('group_proactive_status')"><span>🌱 Статус proactive<small>Шанс, cooldown, состояние</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_on')"><span>▶️ Включить proactive<small>Иногда писать самому</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_off')"><span>⏸ Выключить proactive<small>Не писать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Автоответы</h2>
+      <p>Бот сам отвечает только когда его явно задели: @бот, “бот”, “балерн” или reply на его сообщение.</p>
+      <button class="btn" onclick="sendAction('group_auto_status')"><span>🤖 Статус автоответов<small>Включены или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_on')"><span>▶️ Включить автоответы<small>Отвечать, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_off')"><span>⏸ Выключить автоответы<small>Не отвечать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Память группы</h2>
+      <button class="btn" onclick="sendAction('group_status')"><span>📊 Статус группы<small>Слушает или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_on')"><span>▶️ Включить слушание<small>Сохранять обычные сообщения группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_off')"><span>⏸ Выключить слушание<small>Не сохранять новые сообщения</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_memory')"><span>🧠 Память группы<small>Показать последние сообщения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_forget')"><span>🗑 Очистить память группы<small>Удалить сохранённую историю</small></span><b>›</b></button>
+    </section>
+
+      <section id="groups" class="page card">
+      <h2>👥 Группы</h2>
+      <p>Добавь Balern AI в чат с друзьями и используй его как общего AI-братана.</p>
+
+      <button class="btn primary" onclick="openExternal('https://t.me/balernai_bot?startgroup=true')"><span>➕ Добавить бота в чат<small>Откроется Telegram</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_help')"><span>📘 Как пользоваться в группе<small>/ai, /image, /app, память</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_debug')"><span>🛠 Group Debug<small>Диагностика режима, памяти и ошибок</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Режим группы</h2>
+      <p>Одна кнопка настраивает сразу память, автоответы и proactive mode.</p>
+      <button class="btn primary" onclick="sendAction('group_mode_status')"><span>⚙️ Текущий режим<small>Показать настройки группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_quiet')"><span>🤫 Quiet<small>Слушает, но сам молчит</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_balanced')"><span>⚖️ Balanced<small>Отвечает, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_active')"><span>🔥 Active<small>Иногда включается сам</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_mode_chaos')"><span>🧨 Chaos<small>Тестовый режим для друзей</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_modes_help')"><span>📋 О режимах<small>Что означает каждый режим</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Group-aware AI</h2>
+      <p>В группе команда /ai отвечает с учётом памяти группы. /gai тоже остаётся.</p>
+      <button class="btn" onclick="sendAction('group_ai_command_help')"><span>💬 Как пользоваться /ai<small>/ai теперь помнит историю группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_ai_help')"><span>🤖 Как спрашивать по истории<small>Инструкция для /gai</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_context')"><span>🧾 Текущий контекст группы<small>Последние сохранённые сообщения</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Proactive Mode</h2>
+      <p>Бот может иногда сам включиться в разговор по истории группы. Аккуратно: с шансом и cooldown.</p>
+      <button class="btn" onclick="sendAction('group_proactive_status')"><span>🌱 Статус proactive<small>Шанс, cooldown, состояние</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_on')"><span>▶️ Включить proactive<small>Иногда писать самому</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_off')"><span>⏸ Выключить proactive<small>Не писать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Автоответы</h2>
+      <p>Бот сам отвечает только когда его явно задели: @бот, “бот”, “балерн” или reply на его сообщение.</p>
+      <button class="btn" onclick="sendAction('group_auto_status')"><span>🤖 Статус автоответов<small>Включены или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_on')"><span>▶️ Включить автоответы<small>Отвечать, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_off')"><span>⏸ Выключить автоответы<small>Не отвечать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Память группы</h2>
+      <button class="btn" onclick="sendAction('group_status')"><span>📊 Статус группы<small>Слушает или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_on')"><span>▶️ Включить слушание<small>Сохранять обычные сообщения группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_off')"><span>⏸ Выключить слушание<small>Не сохранять новые сообщения</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_memory')"><span>🧠 Память группы<small>Показать последние сообщения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_forget')"><span>🗑 Очистить память группы<small>Удалить сохранённую историю</small></span><b>›</b></button>
+    </section>
+
+      <section id="groups" class="page card">
+      <h2>👥 Группы</h2>
+      <p>Добавь Balern AI в чат с друзьями и используй его как общего AI-братана.</p>
+
+      <button class="btn primary" onclick="openExternal('https://t.me/balernai_bot?startgroup=true')"><span>➕ Добавить бота в чат<small>Откроется Telegram</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_help')"><span>📘 Как пользоваться в группе<small>/ai, /image, /app, память</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_debug')"><span>🛠 Group Debug<small>Диагностика режима, памяти и ошибок</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Режим группы</h2>
+      <p>Одна кнопка настраивает сразу память, автоответы и proactive mode.</p>
+      <button class="btn primary" onclick="sendAction('group_mode_status')"><span>⚙️ Текущий режим<small>Показать настройки группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_quiet')"><span>🤫 Quiet<small>Слушает, но сам молчит</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_balanced')"><span>⚖️ Balanced<small>Отвечает, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_active')"><span>🔥 Active<small>Иногда включается сам</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_mode_chaos')"><span>🧨 Chaos<small>Тестовый режим для друзей</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_modes_help')"><span>📋 О режимах<small>Что означает каждый режим</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Group-aware AI</h2>
+      <p>В группе команда /ai отвечает с учётом памяти группы. /gai тоже остаётся.</p>
+      <button class="btn" onclick="sendAction('group_ai_command_help')"><span>💬 Как пользоваться /ai<small>/ai теперь помнит историю группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_ai_help')"><span>🤖 Как спрашивать по истории<small>Инструкция для /gai</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_context')"><span>🧾 Текущий контекст группы<small>Последние сохранённые сообщения</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Proactive Mode</h2>
+      <p>Бот может иногда сам включиться в разговор по истории группы. Аккуратно: с шансом и cooldown.</p>
+      <button class="btn" onclick="sendAction('group_proactive_status')"><span>🌱 Статус proactive<small>Шанс, cooldown, состояние</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_on')"><span>▶️ Включить proactive<small>Иногда писать самому</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_off')"><span>⏸ Выключить proactive<small>Не писать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Автоответы</h2>
+      <p>Бот сам отвечает только когда его явно задели: @бот, “бот”, “балерн” или reply на его сообщение.</p>
+      <button class="btn" onclick="sendAction('group_auto_status')"><span>🤖 Статус автоответов<small>Включены или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_on')"><span>▶️ Включить автоответы<small>Отвечать, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_off')"><span>⏸ Выключить автоответы<small>Не отвечать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Память группы</h2>
+      <button class="btn" onclick="sendAction('group_status')"><span>📊 Статус группы<small>Слушает или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_on')"><span>▶️ Включить слушание<small>Сохранять обычные сообщения группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_off')"><span>⏸ Выключить слушание<small>Не сохранять новые сообщения</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_memory')"><span>🧠 Память группы<small>Показать последние сообщения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_forget')"><span>🗑 Очистить память группы<small>Удалить сохранённую историю</small></span><b>›</b></button>
+    </section>
+
+      <section id="groups" class="page card">
+      <h2>👥 Группы</h2>
+      <p>Добавь Balern AI в чат с друзьями и используй его как общего AI-братана.</p>
+
+      <button class="btn primary" onclick="openExternal('https://t.me/balernai_bot?startgroup=true')"><span>➕ Добавить бота в чат<small>Откроется Telegram</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_help')"><span>📘 Как пользоваться в группе<small>/ai, /image, /app, память</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_debug')"><span>🛠 Group Debug<small>Диагностика режима, памяти и ошибок</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Сводка группы</h2>
+      <p>Бот может сжать историю группы в понятную суть, темы и открытые вопросы. /ai будет учитывать эту сводку.</p>
+      <button class="btn" onclick="sendAction('group_summary')"><span>🧠 Сводка группы<small>Показать сохранённую суть</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_topics')"><span>🏷 Темы группы<small>Основные темы обсуждения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_summary_forget')"><span>🗑 Очистить сводку<small>Удалить summary</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Режим группы</h2>
+      <p>Одна кнопка настраивает сразу память, автоответы и proactive mode.</p>
+      <button class="btn primary" onclick="sendAction('group_mode_status')"><span>⚙️ Текущий режим<small>Показать настройки группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_quiet')"><span>🤫 Quiet<small>Слушает, но сам молчит</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_balanced')"><span>⚖️ Balanced<small>Отвечает, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_mode_active')"><span>🔥 Active<small>Иногда включается сам</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_mode_chaos')"><span>🧨 Chaos<small>Тестовый режим для друзей</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_modes_help')"><span>📋 О режимах<small>Что означает каждый режим</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Group-aware AI</h2>
+      <p>В группе команда /ai отвечает с учётом памяти группы и сохранённой сводки.</p>
+      <button class="btn" onclick="sendAction('group_ai_command_help')"><span>💬 Как пользоваться /ai<small>/ai теперь помнит историю группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_ai_help')"><span>🤖 Как спрашивать по истории<small>Инструкция для /gai</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_context')"><span>🧾 Текущий контекст группы<small>Последние сохранённые сообщения</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Proactive Mode</h2>
+      <p>Бот может иногда сам включиться в разговор по истории группы.</p>
+      <button class="btn" onclick="sendAction('group_proactive_status')"><span>🌱 Статус proactive<small>Шанс, cooldown, состояние</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_on')"><span>▶️ Включить proactive<small>Иногда писать самому</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_proactive_off')"><span>⏸ Выключить proactive<small>Не писать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Автоответы</h2>
+      <p>Бот сам отвечает только когда его явно задели.</p>
+      <button class="btn" onclick="sendAction('group_auto_status')"><span>🤖 Статус автоответов<small>Включены или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_on')"><span>▶️ Включить автоответы<small>Отвечать, когда его зовут</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_auto_off')"><span>⏸ Выключить автоответы<small>Не отвечать самому</small></span><b>›</b></button>
+
+      <h2 style="margin-top:16px">Память группы</h2>
+      <button class="btn" onclick="sendAction('group_status')"><span>📊 Статус группы<small>Слушает или нет</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_on')"><span>▶️ Включить слушание<small>Сохранять обычные сообщения группы</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_listen_off')"><span>⏸ Выключить слушание<small>Не сохранять новые сообщения</small></span><b>›</b></button>
+      <button class="btn" onclick="sendAction('group_memory')"><span>🧠 Память группы<small>Показать последние сообщения</small></span><b>›</b></button>
+      <button class="btn danger" onclick="sendAction('group_forget')"><span>🗑 Очистить память группы<small>Удалить сохранённую историю</small></span><b>›</b></button>
+    </section>
+
+  </main>
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const toast = document.getElementById("toast");
+    if (tg) { tg.ready(); tg.expand(); tg.MainButton.setText("Закрыть"); tg.MainButton.show(); tg.MainButton.onClick(()=>tg.close()); }
+    function openPage(id, btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');}
+    function showToast(t){toast.textContent=t;toast.style.display='block';setTimeout(()=>toast.style.display='none',2500);}
+    function sendAction(action){const payload=JSON.stringify({type:'balern_mini_app_action',action,ts:Date.now()}); if(tg){tg.sendData(payload);showToast('Отправил: '+action);}else{showToast('Вне Telegram: '+action);}}
+    function forgetMemory(){ if(confirm('Точно очистить память этого чата?')) sendAction('memory_forget'); }
+  </script>
+
+<script>
+function openExternal(url) {
+  if (window.Telegram && Telegram.WebApp) {
+    Telegram.WebApp.openTelegramLink(url);
+  } else {
+    window.open(url, "_blank");
+  }
+}
+</script>
+
+</body>
+</html>
